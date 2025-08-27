@@ -1,0 +1,57 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">ภาพรวมสุขภาพทางการเงิน</h2>
+        <div id="ceo-kpi-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="card text-center text-slate-500">Loading KPIs...</div>
+        </div>
+    </section>
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">โครงการทั้งหมด (Filtered by RLS)</h2>
+        <div id="project-list-container" class="card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b"><th class="text-left py-2">Code</th><th class="text-left py-2">Name</th><th class="text-left py-2">Status</th></tr>
+                </thead>
+                <tbody id="project-list-body">
+                    <tr><td colspan="3" class="text-center text-slate-400 py-4">Loading projects...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Page-specific initialization logic
+    window.pageInit = window.pageInit || {};
+    window.pageInit.ceo_dashboard = async (currentUser) => {
+        console.log('Initializing CEO Dashboard for:', currentUser.email);
+        
+        const kpiContainer = document.getElementById('ceo-kpi-container');
+        const projectListBody = document.getElementById('project-list-body');
+
+        // Fetch data using functions from api.js
+        const kpis = await api.getCeoKpis();
+        const projects = await api.getProjects(); // RLS handles the filtering automatically
+
+        // Render KPIs
+        kpiContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">Gross Profit</div><div class="kpi">฿${kpis.gross_profit.toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Net Profit</div><div class="kpi">฿${kpis.net_profit.toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">A/R Aging (61+ Days)</div><div class="kpi text-red-600">฿${kpis.ar_aging[2].toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Work-in-Progress</div><div class="kpi">฿${kpis.wip.toLocaleString()}</div></div>
+        `;
+
+        // Render Projects
+        if (projects.length > 0) {
+            projectListBody.innerHTML = projects.map(p => `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2">${p.project_code}</td>
+                    <td class="py-2">${p.name}</td>
+                    <td class="py-2"><span class="pill ${p.status === 'Active' ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700'}">${p.status}</span></td>
+                </tr>
+            `).join('');
+        } else {
+            projectListBody.innerHTML = '<tr><td colspan="3" class="text-center text-slate-400 py-4">No projects found.</td></tr>';
+        }
+    };
+</script>

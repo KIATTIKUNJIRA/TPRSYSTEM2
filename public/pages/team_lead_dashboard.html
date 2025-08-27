@@ -1,0 +1,73 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">การจัดการ Task ประจำวัน</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="card">
+                <h3 class="font-semibold mb-2">Team's To-Do List (สัปดาห์นี้)</h3>
+                <ul id="tl-team-tasks" class="space-y-2 text-sm"></ul>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-2">My To-Do List (งานของฉัน)</h3>
+                <ul id="tl-my-tasks" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+    </section>
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">การดูแลทีม</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="card">
+                <h3 class="font-semibold mb-2">Timesheet รออนุมัติ</h3>
+                <ul id="tl-approvals" class="space-y-2 text-sm"></ul>
+            </div>
+             <div class="card">
+                <h3 class="font-semibold mb-2">Team Availability (วันนี้)</h3>
+                <ul id="tl-availability" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.team_lead_dashboard = async (currentUser) => {
+        console.log('Initializing Team Lead Dashboard for:', currentUser.email);
+
+        const teamTasksList = document.getElementById('tl-team-tasks');
+        const myTasksList = document.getElementById('tl-my-tasks');
+        const approvalsList = document.getElementById('tl-approvals');
+        const availabilityList = document.getElementById('tl-availability');
+
+        const tlData = await api.getTlDashboardData();
+
+        // Render Team Tasks
+        teamTasksList.innerHTML = tlData.team_tasks.map(task => `
+            <li class="p-2 rounded-lg bg-slate-50">
+                <div>${task.title} (${task.project})</div>
+                <div class="text-xs text-slate-500">มอบหมายให้: ${task.assignee}</div>
+            </li>
+        `).join('');
+
+        // Render My Tasks
+        myTasksList.innerHTML = tlData.my_tasks.map(task => `
+            <li class="p-2 rounded-lg bg-sky-50">
+                <div>${task.title} (${task.project})</div>
+            </li>
+        `).join('');
+        
+        // Render Approvals
+        approvalsList.innerHTML = tlData.approvals.length > 0 ? tlData.approvals.map(item => `
+             <li class="p-2 rounded-lg bg-slate-50 flex justify-between items-center">
+                <span>${item.who} - ${item.hours} ชม.</span>
+                <button class="px-2 py-1 text-xs bg-slate-800 text-white rounded-md">Review</button>
+            </li>
+        `).join('') : '<li class="text-sm text-slate-500">No pending approvals.</li>';
+
+        // Render Availability
+        availabilityList.innerHTML = tlData.availability.map(member => `
+             <li class="flex justify-between items-center text-sm">
+                <span>${member.name}</span>
+                <span class="pill ${member.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${member.status}</span>
+            </li>
+        `).join('');
+    };
+</script>

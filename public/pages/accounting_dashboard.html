@@ -1,0 +1,36 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">ลูกหนี้และการออกใบแจ้งหนี้</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="ac-ar-kpis">
+        </div>
+    </section>
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">เจ้าหนี้และค่าใช้จ่าย</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="ac-ap-kpis">
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.accounting_dashboard = async (currentUser) => {
+        console.log('Initializing Accounting Dashboard for:', currentUser.email);
+
+        const arContainer = document.getElementById('ac-ar-kpis');
+        const apContainer = document.getElementById('ac-ap-kpis');
+
+        const acData = await api.getAcDashboardData();
+
+        arContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">A/R Aging (61+ Days)</div><div class="kpi text-red-600">฿${acData.ar_kpis.aging_61_plus.toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Work-in-Progress</div><div class="kpi">฿${acData.ar_kpis.wip.toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Draft Invoices</div><div class="kpi">${acData.ar_kpis.draft_invoices}</div></div>
+        `;
+        
+        apContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">A/P Aging (31+ Days)</div><div class="kpi text-amber-600">฿${acData.ap_kpis.aging_31_plus.toLocaleString()}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Bills Due Soon</div><div class="kpi">${acData.ap_kpis.bills_due}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Expenses to Reimburse</div><div class="kpi">${acData.ap_kpis.reimbursements}</div></div>
+        `;
+    };
+</script>

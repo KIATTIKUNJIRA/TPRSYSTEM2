@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Welcome - TPRSYSTEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="assets/main.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+    <div class="text-center">
+        <h1 class="text-2xl font-bold text-slate-800">TPRSYSTEM</h1>
+        <p class="text-slate-500 mt-2">Loading your workspace...</p>
+    </div>
+
+    <script type="module">
+        import { supabase } from './assets/supabase-client.js';
+
+        async function checkAuthAndRedirect() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // If user is logged in, go to the main app
+                window.location.replace('/app.html');
+            } else {
+                // If not logged in, go to the login page
+                window.location.replace('/login.html');
+            }
+        }
+
+        checkAuthAndRedirect();
+    </script>
+</body>
+</html>

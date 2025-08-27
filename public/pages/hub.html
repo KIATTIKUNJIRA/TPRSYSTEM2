@@ -1,0 +1,46 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">Your Workspace</h2>
+        <div id="hub-menu-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
+    </section>
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">Quick Actions</h2>
+        <div class="flex flex-wrap gap-4">
+            <a href="#timesheet" class="px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-slate-50">ลงเวลาทำงาน (Timesheet)</a>
+            <a href="#leave_request" class="px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-slate-50">ยื่นคำขอลา</a>
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.hub = (currentUser) => {
+        console.log('Initializing Hub for:', currentUser.email);
+        const container = document.getElementById('hub-menu-container');
+        if (!container) return;
+        
+        const userRoles = Array.isArray(currentUser.roles) ? currentUser.roles : [];
+
+        // Define all possible cards
+        const menuCards = [
+            { id: 'ceo_dashboard', title: 'ภาพรวมผู้บริหาร', desc: 'Financial, Project & Team KPIs', roles: ['admin', 'ceo'] },
+            { id: 'pm_dashboard', title: 'แดชบอร์ดโครงการ', desc: 'Project Tracking & Team Management', roles: ['admin', 'pm', 'team_lead'] },
+            { id: 'hr_dashboard', title: 'ฝ่ายบุคคล (HR)', desc: 'Time, Attendance & People Ops', roles: ['admin', 'hr'] },
+            { id: 'accounting_dashboard', title: 'ฝ่ายบัญชี', desc: 'AR, AP, & Financial Control', roles: ['admin', 'accounting'] },
+            { id: 'projects_list', title: 'รายชื่อโครงการทั้งหมด', desc: 'View and manage all projects', roles: ['admin', 'pm', 'ceo'] },
+            { id: 'my_workspace', title: 'โต๊ะทำงานของฉัน', desc: 'View your assigned tasks and projects', roles: ['employee'] }
+        ];
+
+        const accessibleCards = menuCards.filter(card => 
+            card.roles.some(role => userRoles.includes(role))
+        );
+
+        container.innerHTML = accessibleCards.map(card => `
+            <a href="#${card.id}" class="card block hover:border-sky-500 hover:shadow-md transition-all">
+                <h3 class="font-semibold text-slate-800">${card.title}</h3>
+                <p class="text-sm text-slate-500 mt-1">${card.desc}</p>
+            </a>
+        `).join('');
+    };
+</script>

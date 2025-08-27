@@ -1,0 +1,46 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">Resource Overview</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="rm-kpi-container">
+            </div>
+    </section>
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">Bench Report (พนักงานที่ยังไม่มีโครงการ)</h2>
+        <div class="card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b"><th class="text-left py-2">Name</th><th class="text-left py-2">Role</th><th class="text-left py-2">Available From</th></tr>
+                </thead>
+                <tbody id="rm-bench-body"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.resource_manager_dashboard = async (currentUser) => {
+        console.log('Initializing Resource Manager Dashboard for:', currentUser.email);
+        
+        const kpiContainer = document.getElementById('rm-kpi-container');
+        const benchBody = document.getElementById('rm-bench-body');
+        
+        const rmData = await api.getRmDashboardData();
+
+        // Render KPIs
+        kpiContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">Company Utilization</div><div class="kpi text-emerald-600">${rmData.kpis.company_utilization}%</div></div>
+            <div class="card"><div class="text-sm text-slate-500">On the Bench</div><div class="kpi">${rmData.kpis.on_bench}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Overallocated</div><div class="kpi text-red-600">${rmData.kpis.overallocated}</div></div>
+        `;
+
+        // Render Bench Report
+        benchBody.innerHTML = rmData.bench_report.map(emp => `
+            <tr class="border-b hover:bg-slate-50">
+                <td class="py-2 font-medium">${emp.name}</td>
+                <td class="py-2 text-slate-600">${emp.role}</td>
+                <td class="py-2">${emp.availableFrom}</td>
+            </tr>
+        `).join('');
+    };
+</script>

@@ -1,0 +1,59 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">การติดตามสถานะโครงการ</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="pm-kpi-container">
+            </div>
+    </section>
+
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">การจัดการทีมงาน</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="card">
+                <h3 class="font-semibold mb-2">Team Utilization</h3>
+                <table class="w-full text-sm">
+                    <thead><tr class="border-b"><th class="text-left py-1">พนักงาน</th><th class="text-right py-1">Utilization</th></tr></thead>
+                    <tbody id="pm-util-body"></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-2">รายการรออนุมัติ (Approvals)</h3>
+                <ul id="pm-approvals-list" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.pm_dashboard = async (currentUser) => {
+        console.log('Initializing PM Dashboard for:', currentUser.email);
+
+        const kpiContainer = document.getElementById('pm-kpi-container');
+        const utilBody = document.getElementById('pm-util-body');
+        const approvalsList = document.getElementById('pm-approvals-list');
+
+        // Fetch data from api.js
+        const pmData = await api.getPmDashboardData();
+
+        // Render KPIs
+        kpiContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">Active Projects</div><div class="kpi">${pmData.kpis.active}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Completed</div><div class="kpi">${pmData.kpis.completed}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">At Risk</div><div class="kpi text-red-600">${pmData.kpis.at_risk}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Approvals Pending</div><div class="kpi text-amber-600">${pmData.approvals.length}</div></div>
+        `;
+
+        // Render Utilization
+        utilBody.innerHTML = pmData.team_utilization.map(member => `
+            <tr class="border-b"><td class="py-1">${member.name}</td><td class="text-right py-1">${member.util}%</td></tr>
+        `).join('');
+
+        // Render Approvals
+        approvalsList.innerHTML = pmData.approvals.map(item => `
+            <li class="p-2 rounded-lg bg-slate-50 flex justify-between items-center">
+                <span>${item.type}: ${item.who}</span>
+                <button class="px-2 py-1 text-xs bg-slate-800 text-white rounded-md">View</button>
+            </li>
+        `).join('');
+    };
+</script>

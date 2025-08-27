@@ -1,0 +1,56 @@
+<div class="space-y-6">
+    <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">การจัดการเวลาและการเข้าทำงาน</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="card">
+                <h3 class="font-semibold mb-2">Timesheet Compliance (สัปดาห์นี้)</h3>
+                <div id="hr-tsc-summary"></div>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-2">Leave Requests Pending</h3>
+                <ul id="hr-leave-requests" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+    </section>
+     <section>
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">ภาพรวมบุคลากร</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="hr-kpi-container">
+        </div>
+    </section>
+</div>
+
+<script>
+    window.pageInit = window.pageInit || {};
+    window.pageInit.hr_dashboard = async (currentUser) => {
+        console.log('Initializing HR Dashboard for:', currentUser.email);
+        
+        const tscSummary = document.getElementById('hr-tsc-summary');
+        const leaveRequests = document.getElementById('hr-leave-requests');
+        const kpiContainer = document.getElementById('hr-kpi-container');
+
+        const hrData = await api.getHrDashboardData();
+
+        kpiContainer.innerHTML = `
+            <div class="card"><div class="text-sm text-slate-500">Total Employees</div><div class="kpi">${hrData.kpis.total_employees}</div></div>
+            <div class="card"><div class="text-sm text-slate-500">Avg. Utilization</div><div class="kpi">${hrData.kpis.avg_utilization}%</div></div>
+             <div class="card"><div class="text-sm text-slate-500">On Leave Today</div><div class="kpi">${hrData.kpis.on_leave_today}</div></div>
+        `;
+        
+        tscSummary.innerHTML = `
+            <div class="flex justify-between items-center text-sm p-2 bg-emerald-50 rounded-lg"><span>ส่งครบและอนุมัติแล้ว</span><span class="font-bold">${hrData.timesheet_compliance.approved}</span></div>
+            <div class="flex justify-between items-center text-sm p-2 bg-amber-50 rounded-lg mt-2"><span>รออนุมัติ</span><span class="font-bold">${hrData.timesheet_compliance.pending}</span></div>
+            <div class="flex justify-between items-center text-sm p-2 bg-red-50 rounded-lg mt-2"><span>ยังไม่ส่ง</span><span class="font-bold">${hrData.timesheet_compliance.missing}</span></div>
+        `;
+
+        if (hrData.leave_requests.length > 0) {
+            leaveRequests.innerHTML = hrData.leave_requests.map(req => `
+                <li class="p-2 rounded-lg bg-slate-50 flex justify-between items-center">
+                    <span>${req.who} (${req.type})</span>
+                    <button class="px-2 py-1 text-xs bg-slate-800 text-white rounded-md">Review</button>
+                </li>
+            `).join('');
+        } else {
+            leaveRequests.innerHTML = '<li class="text-sm text-slate-500">No pending leave requests.</li>';
+        }
+    };
+</script>

@@ -1,0 +1,27 @@
+:root {
+    --brand: #0ea5e9;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --muted: #64748b;
+}
+
+.card {
+    @apply bg-white border border-slate-200 rounded-2xl p-4 shadow-sm;
+}
+
+.kpi {
+    @apply text-2xl font-bold text-slate-800;
+}
+
+.pill {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.main-menu-item {
+    @apply block w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100;
+}
+
+.main-menu-item.active {
+    @apply bg-sky-100 text-sky-700 font-semibold;
+}
