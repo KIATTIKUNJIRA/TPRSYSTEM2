@@ -1,0 +1,56 @@
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div>
+      <div class="crumb">Projects &gt; <span id="pd-code">—</span></div>
+      <h1 id="pd-name">Loading…</h1>
+    </div>
+    <div>
+      <a href="#projects_list" class="btn">Back to list</a>
+    </div>
+  </div>
+
+  <div id="pd-body" style="margin-top:16px">
+    <div class="text-slate-500">Fetching project data…</div>
+  </div>
+</div>
+
+<script>
+  window.pageInit = window.pageInit || {};
+  window.pageInit.project_detail = async (currentUser, id) => {
+    const container = document.getElementById('pd-body');
+    const codeEl = document.getElementById('pd-code');
+    const nameEl = document.getElementById('pd-name');
+
+    if (!id) {
+      container.innerHTML = '<div class="text-red-600">No project id provided in URL.</div>';
+      return;
+    }
+
+    codeEl.textContent = id;
+    try {
+      const proj = await api.getProject(id);
+      if (!proj) {
+        container.innerHTML = '<div class="text-red-600">Project not found.</div>';
+        return;
+      }
+
+      nameEl.textContent = proj.name || 'Unnamed project';
+
+      container.innerHTML = `
+        <dl>
+          <dt>Project Code</dt><dd>${proj.project_code || proj.id}</dd>
+          <dt>Owner</dt><dd>${proj.owner_id || '—'}</dd>
+          <dt>Project Manager</dt><dd>${proj.pm ? (proj.pm.first_name + ' ' + (proj.pm.last_name||'')) : '—'}</dd>
+          <dt>Status</dt><dd>${proj.status || '—'}</dd>
+          <dt>Contract Amount</dt><dd class="money">${proj.contract_amount ? '฿ ' + Number(proj.contract_amount).toLocaleString() : '—'}</dd>
+          <dt>Start / Due</dt><dd>${proj.start_date || '—'} / ${proj.due_date || '—'}</dd>
+          <dt>Parent</dt><dd>${proj.parent ? proj.parent.project_code + ' — ' + proj.parent.name : '—'}</dd>
+          <dt>Children Count</dt><dd>${proj.childrenCount || 0}</dd>
+        </dl>
+      `;
+    } catch (err) {
+      console.error('project_detail init error', err);
+      container.innerHTML = '<div class="text-red-600">Error fetching project data.</div>';
+    }
+  };
+</script>

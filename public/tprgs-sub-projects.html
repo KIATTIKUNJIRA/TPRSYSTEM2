@@ -46,24 +46,24 @@
           <td>C-2501-01</td><td>งานออกแบบสถาปัตยกรรม</td><td>สถาปนิก</td>
           <td>฿ 10,000,000</td><td>฿ 5,200,000</td><td><span class="badge">กำลังทำ</span></td>
           <td class="row">
-            <a class="btn" href="tprgs-project-dashboard.html?id=C-2501-01">Dashboard</a>
-            <a class="btn primary" href="tprgs-project-detail.html?id=C-2501-01">รายละเอียด/ตั้งค่า</a>
+            <a class="btn" href="#project_detail?id=C-2501-01">Dashboard</a>
+            <a class="btn primary" href="#project_detail?id=C-2501-01">รายละเอียด/ตั้งค่า</a>
           </td>
         </tr>
         <tr>
           <td>C-2501-02</td><td>งานออกแบบโครงสร้าง</td><td>วิศวกรโครงสร้าง</td>
           <td>฿ 8,000,000</td><td>฿ 2,800,000</td><td><span class="badge">เสี่ยง</span></td>
           <td class="row">
-            <a class="btn" href="tprgs-project-dashboard.html?id=C-2501-02">Dashboard</a>
-            <a class="btn primary" href="tprgs-project-detail.html?id=C-2501-02">รายละเอียด/ตั้งค่า</a>
+            <a class="btn" href="#project_detail?id=C-2501-02">Dashboard</a>
+            <a class="btn primary" href="#project_detail?id=C-2501-02">รายละเอียด/ตั้งค่า</a>
           </td>
         </tr>
         <tr>
           <td>C-2501-03</td><td>งานออกแบบระบบ MEP</td><td>วิศวกรระบบ</td>
           <td>฿ 12,000,000</td><td>฿ 5,200,000</td><td><span class="badge">กำลังทำ</span></td>
           <td class="row">
-            <a class="btn" href="tprgs-project-dashboard.html?id=C-2501-03">Dashboard</a>
-            <a class="btn primary" href="tprgs-project-detail.html?id=C-2501-03">รายละเอียด/ตั้งค่า</a>
+            <a class="btn" href="#project_detail?id=C-2501-03">Dashboard</a>
+            <a class="btn primary" href="#project_detail?id=C-2501-03">รายละเอียด/ตั้งค่า</a>
           </td>
         </tr>
       </tbody>
@@ -74,7 +74,7 @@
     const qp = (k)=> new URLSearchParams(location.search).get(k);
     const parent = qp('parentId') || 'P-2501';
     document.getElementById('parentId').textContent = parent;
-    document.getElementById('dashBtn').href = `tprgs-project-dashboard.html?id=${encodeURIComponent(parent)}`;
+  document.getElementById('dashBtn').href = `#project_detail?id=${encodeURIComponent(parent)}`;
   </script>
 </body>
 </html>

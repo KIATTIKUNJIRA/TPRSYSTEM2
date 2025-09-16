@@ -1,53 +1,22 @@
 // public/assets/auth.js
 import { supabase } from './supabase-client.js';
-import { api } from './api.js';
 import { ui } from './ui.js';
-
 let currentUser = null;
 
 export async function handleAuth() {
-    // Check for a user session
-    const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { location.replace('/login.html'); return null; }
 
-    if (error) {
-        console.error("Error getting session:", error);
-        return null;
-    }
-    
-    if (!session) {
-        // If no session, redirect to login page
-        window.location.href = '/login.html';
-        return null;
-    }
+  const uid = session.user.id;
+  const email = session.user.email;
 
-    console.log("Session found for user:", session.user.email);
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+  const { data: ur } = await supabase.from('user_roles').select('roles(name)').eq('user_id', uid);
+  const roles = (ur || []).map(r => r.roles?.name).filter(Boolean);
 
-    // Fetch profile and roles from our database tables
-    const profile = await api.getUserProfile(session.user.id);
-    const roles = await api.getUserRoles(session.user.id);
-
-    if (!profile) {
-        console.error("Could not find a profile for the user.");
-        window.location.href = '/login.html';
-        return null;
-    }
-    
-    // Combine all user information into a single object
-    currentUser = {
-        id: session.user.id,
-        email: session.user.email,
-        profile: profile,
-        roles: roles.map(r => r.name) // Get an array of role names, e.g., ['admin', 'ceo']
-    };
-    
-    console.log("Current User Initialized:", currentUser);
-
-    // Render user-specific UI elements
-    ui.renderUserInfo(currentUser);
-
-    return currentUser;
+  currentUser = { id: uid, email, profile, roles };
+  ui?.renderUserInfo?.(currentUser);
+  return currentUser;
 }
 
-export function getCurrentUser() {
-    return currentUser;
-}
+export function getCurrentUser(){ return currentUser; }

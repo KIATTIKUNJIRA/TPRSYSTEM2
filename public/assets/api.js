@@ -1,122 +1,130 @@
 // public/assets/api.js
+// Clean API wrapper for Supabase-backed project data + mocked AR/AP/WIP until those tables exist.
+
 import { supabase } from './supabase-client.js';
 
+async function getProjects({ year } = {}) {
+  try {
+    let builder = supabase
+      .from('projects')
+      .select('id, project_code, name, owner_id, pm_id, status, contract_amount, start_date, due_date')
+      .order('start_date', { ascending: false });
+
+    if (year) {
+      const start = `${year}-01-01`;
+      const end = `${year}-12-31`;
+      builder = builder.gte('start_date', start).lte('start_date', end);
+    }
+
+    const { data, error } = await builder;
+    if (error) {
+      console.error('api.getProjects error', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.error('api.getProjects unexpected', err);
+    return [];
+  }
+}
+
+async function getProject(id) {
+  if (!id) return null;
+  try {
+    const { data: project, error: projErr } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (projErr) {
+      console.error('api.getProject project fetch error', projErr);
+      return null;
+    }
+    if (!project) return null;
+
+    let pm = null;
+    if (project.pm_id) {
+      const { data: pmData, error: pmErr } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .eq('id', project.pm_id)
+        .maybeSingle();
+      if (pmErr) console.warn('api.getProject pm fetch warning', pmErr);
+      pm = pmData || null;
+    }
+
+    let parent = null;
+    if (project.parent_id) {
+      const { data: pData, error: pErr } = await supabase
+        .from('projects')
+        .select('id, project_code, name')
+        .eq('id', project.parent_id)
+        .maybeSingle();
+      if (pErr) console.warn('api.getProject parent fetch warning', pErr);
+      parent = pData || null;
+    }
+
+    const { count, error: childErr } = await supabase
+      .from('projects')
+      .select('id', { count: 'exact', head: true })
+      .eq('parent_id', id);
+    if (childErr) console.warn('api.getProject children count warning', childErr);
+
+    return {
+      ...project,
+      pm,
+      parent,
+      childrenCount: typeof count === 'number' ? count : 0
+    };
+  } catch (err) {
+    console.error('api.getProject unexpected', err);
+    return null;
+  }
+}
+
+async function getMyAssignments(userId) {
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('project_members')
+      .select('project:projects(id, project_code, name, pm_id, status, start_date, due_date)')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('api.getMyAssignments error', error);
+      return [];
+    }
+    return (data || []).map(r => r.project).filter(Boolean);
+  } catch (err) {
+    console.error('api.getMyAssignments unexpected', err);
+    return [];
+  }
+}
+
+// --- Mocked financial endpoints until tables exist ---
+function _mockFinancial(label) {
+  return {
+    source: 'mock',
+    label,
+    generated_at: new Date().toISOString(),
+    summary: { total: 35000, currency: 'THB' },
+    lines: [
+      { id: `${label}_1`, name: `${label} sample 1`, amount: 10000 },
+      { id: `${label}_2`, name: `${label} sample 2`, amount: 25000 }
+    ]
+  };
+}
+
+async function getAR() { return _mockFinancial('AR'); }
+async function getAP() { return _mockFinancial('AP'); }
+async function getWIP() { return _mockFinancial('WIP'); }
+
 export const api = {
-    // Fetches the user's profile from the 'profiles' table
-    async getUserProfile(userId) {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-
-        if (error) {
-            console.error('Error fetching user profile:', error);
-            return null;
-        }
-        return data;
-    },
-
-    // Fetches the user's roles from the 'user_roles' and 'roles' tables
-    async getUserRoles(userId) {
-        const { data, error } = await supabase
-            .from('user_roles')
-            .select(`roles ( name )`)
-            .eq('user_id', userId);
-
-        if (error) {
-            console.error('Error fetching user roles:', error);
-            return [];
-        }
-        return data.map(item => item.roles);
-    },
-
-    // Fetches projects. RLS will automatically filter this based on the logged-in user.
-    async getProjects() {
-        const { data, error } = await supabase
-            .from('projects')
-            .select('*');
-
-        if (error) {
-            console.error('Error fetching projects:', error);
-            return [];
-        }
-        return data;
-    },
-    
-    // ---- NEW MOCK FUNCTIONS FOR DASHBOARDS ----
-
-    async getCeoKpis() {
-        return { gross_profit: 4250000, net_profit: 1370000, ar_aging: [1200000, 620000, 350000], wip: 2180000 };
-    },
-
-    async getPmDashboardData() {
-        return {
-            kpis: { active: 8, completed: 3, at_risk: 2 },
-            team_utilization: [
-                { name: 'ศศิธร', util: 86 }, { name: 'ธนวัต', util: 74 }, { name: 'มยุรี', util: 69 }
-            ],
-            approvals: [
-                { type: 'Timesheet', who: 'ศศิธร – 8 ชม.' }, { type: 'Expense', who: 'มยุรี – ฿1,240' }
-            ]
-        };
-    },
-    
-    async getHrDashboardData() {
-        return {
-            kpis: { total_employees: 42, avg_utilization: 78, on_leave_today: 3 },
-            timesheet_compliance: { approved: 35, pending: 5, missing: 2 },
-            leave_requests: [
-                { who: 'ภาณุวัฒน์', type: 'PTO' }, { who: 'มยุรี', type: 'Personal' }
-            ]
-        };
-    },
-
-    async getAcDashboardData() {
-        return {
-            ar_kpis: { aging_61_plus: 460000, wip: 2150000, draft_invoices: 3 },
-            ap_kpis: { aging_31_plus: 600000, bills_due: 5, reimbursements: 2 }
-        };
-    }
+  getProjects,
+  getProject,
+  getMyAssignments,
+  getAR,
+  getAP,
+  getWIP
 };
- // ---- NEW MOCK FUNCTIONS FOR DASHBOARDS ----
-    async getTlDashboardData() {
-        return {
-            team_tasks: [
-                { title: 'UAT ฟีเจอร์ใบเสนอราคา', project: 'PRJ-201', assignee: 'สารี' },
-                { title: 'ออกแบบหน้า Dashboard ย่อย', project: 'PRJ-205', assignee: 'เจ' },
-            ],
-            my_tasks: [ { title: 'Review API Spec v2', project: 'PRJ-205' } ],
-            approvals: [ { who: 'สารี', hours: 3.5 }, { who: 'เจ', hours: 2.0 } ],
-            availability: [
-                { name: 'สารี', status: 'Available' }, { name: 'เจ', status: 'WFH' }, { name: 'นิว', status: 'Sick' }
-            ]
-        };
-    },
-    async getBdDashboardData() {
-        return {
-            kpis: { pipeline_value: 74300000, win_rate: 32, follow_ups: 3 },
-            opportunities: [
-                { name: 'สถานี Interchange เมืองใหม่', client: 'Metro Dev Co.', stage: 'Prospecting', value: 8800000 },
-                { name: 'สะพานข้ามแม่น้ำ X', client: 'River Authority', stage: 'Proposal Sent', value: 16500000 },
-                { name: 'อาคารสำนักงาน Q', client: 'Q Estates', stage: 'Negotiation', value: 9700000 }
-            ]
-        };
-    },
-    async getRmDashboardData() {
-        return {
-            kpis: { company_utilization: 82, on_bench: 4, overallocated: 2 },
-            bench_report: [
-                { name: 'อัครชัย รัตนศิริ', role: 'Civil Eng.', availableFrom: '2025-08-27' },
-                { name: 'ธารา ทองดี', role: 'Civil Eng.', availableFrom: '2025-08-29' }
-            ]
-        };
-    }
-};
-
-// --- PASTE THE ORIGINAL FUNCTIONS BELOW ---
-/*
-async function getUserProfile...
-async function getUserRoles...
-... etc
-*/

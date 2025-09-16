@@ -1,9 +1,14 @@
 // public/assets/supabase-client.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// ข้อมูลสำหรับเชื่อมต่อโปรเจกต์ tprsystem-v2 ของคุณ
-const SUPABASE_URL = 'https://cszxoohxcyqcuoulemsw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzenhvb2h4Y3lxY3VvdWxlbXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTc4MDIsImV4cCI6MjA3MTM3MzgwMn0.uignnwzXEMnMGsRLkQnYAdlMa0S2ndysvaYJg7fo4Sk';
+function getEnv() {
+	const e = (window.__ENV || {});
+	if (!e.SUPABASE_URL || !e.SUPABASE_ANON_KEY) {
+		throw new Error("Missing Supabase ENV. Set window.__ENV in public/assets/env.js");
+	}
+	return e;
+}
 
-// สร้างและ export client ของ supabase เพื่อให้ไฟล์อื่นนำไปใช้ได้
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = getEnv();
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export { getEnv };

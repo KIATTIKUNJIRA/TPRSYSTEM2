@@ -1,10 +1,14 @@
 // public/assets/ui.js
+import { getCurrentUser } from './auth.js';
+
 export const ui = {
     renderMenu: (user, activePage) => {
         const menuContainer = document.getElementById('main-menu');
         if (!menuContainer) return;
         
-        const userRoles = Array.isArray(user.roles) ? user.roles : [];
+        // Prefer roles from auth.js getCurrentUser() for authoritative role data
+        const effectiveUser = user || getCurrentUser();
+        const userRoles = Array.isArray(effectiveUser?.roles) ? effectiveUser.roles : [];
         
         const menuItems = [
             { id: 'ceo_dashboard', label: 'ภาพรวมผู้บริหาร (CEO)', roles: ['admin', 'ceo'] },
@@ -29,14 +33,6 @@ export const ui = {
             </a>
         `).join('');
     },
-    // --- PASTE THE REST OF THE ORIGINAL ui.js FUNCTIONS HERE ---
-    /*
-    renderPageTitle...
-    renderUserInfo...
-    renderContent...
-    */
-};
-    
     renderPageTitle: (title) => {
         const titleEl = document.getElementById('page-title');
         if (titleEl) titleEl.textContent = title;

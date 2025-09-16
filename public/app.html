@@ -33,6 +33,7 @@
         </div>
     </div>
     
+    <script type="module" src="assets/env.js"></script>
     <script type="module" src="assets/main.js"></script>
     <script type="module">
         import { supabase } from './assets/supabase-client.js';
@@ -62,6 +63,13 @@
                     alert('เกิดข้อผิดพลาดขณะออกจากระบบ');
                 }
             });
+        }
+    </script>
+    <script type="module">
+        // Dev-only healthcheck: run when on localhost
+        const host = location.hostname;
+        if(host === 'localhost' || host === '127.0.0.1'){
+            import('./assets/healthcheck.js').catch(e=>console.warn('Healthcheck load failed', e));
         }
     </script>
 </body>
