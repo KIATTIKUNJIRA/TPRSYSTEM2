@@ -78,7 +78,34 @@ async function setupNavbar(user, userRole, currentPage) {
     userInfoNav.innerText = `${user.email} (สิทธิ์: ${userRole})`;
     userInfoNav.style.display = 'inline';
     logoutButton.style.display = 'inline-block';
-    logoutButton.addEventListener('click', () => {
-        if (auth) auth.signOut().catch(error => console.error("Sign out failed:", error));
+    logoutButton.addEventListener('click', async () => {
+        logoutButton.disabled = true;
+        logoutButton.textContent = 'Signing out...';
+        try {
+            // Try Supabase signOut if available
+            try {
+                // import supabase client dynamically so this file works both in module and non-module contexts
+                const mod = await import('./assets/supabase-client.js');
+                if (mod && mod.supabase && mod.supabase.auth && typeof mod.supabase.auth.signOut === 'function') {
+                    const { error } = await mod.supabase.auth.signOut();
+                    if (error) console.warn('Supabase signOut warning:', error.message);
+                }
+            } catch (e) {
+                // ignore if supabase client isn't available
+            }
+
+            // Try Firebase signOut if available
+            if (typeof auth !== 'undefined' && auth && typeof auth.signOut === 'function') {
+                try { await auth.signOut(); } catch (e) { console.warn('Firebase signOut warning:', e); }
+            }
+
+            // Redirect to login page after sign-out
+            window.location.href = 'login.html';
+        } catch (err) {
+            console.error('Error during sign-out:', err);
+            logoutButton.disabled = false;
+            logoutButton.textContent = 'Logout';
+            alert('เกิดข้อผิดพลาดขณะออกจากระบบ');
+        }
     });
 }

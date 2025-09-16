@@ -34,5 +34,35 @@
     </div>
     
     <script type="module" src="assets/main.js"></script>
+    <script type="module">
+        import { supabase } from './assets/supabase-client.js';
+
+        const logoutBtn = document.getElementById('logout-button');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                logoutBtn.disabled = true;
+                logoutBtn.textContent = 'Signing out...';
+                try {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error('Sign out error:', error.message);
+                        // Restore UI
+                        logoutBtn.disabled = false;
+                        logoutBtn.textContent = 'Logout';
+                        alert('เกิดข้อผิดพลาดขณะออกจากระบบ: ' + error.message);
+                        return;
+                    }
+
+                    // After successful sign-out, navigate to the login page
+                    window.location.href = 'login.html';
+                } catch (err) {
+                    console.error('Unexpected sign out error:', err);
+                    logoutBtn.disabled = false;
+                    logoutBtn.textContent = 'Logout';
+                    alert('เกิดข้อผิดพลาดขณะออกจากระบบ');
+                }
+            });
+        }
+    </script>
 </body>
 </html>

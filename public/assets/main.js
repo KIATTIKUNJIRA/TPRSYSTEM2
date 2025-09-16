@@ -12,7 +12,8 @@ async function main() {
 
         document.getElementById('logout-button').addEventListener('click', async () => {
             await supabase.auth.signOut();
-            window.location.href = '/login.html';
+            // Use relative redirect to avoid issues with servers that interpret leading slash differently
+            window.location.href = 'login.html';
         });
     }
 }
