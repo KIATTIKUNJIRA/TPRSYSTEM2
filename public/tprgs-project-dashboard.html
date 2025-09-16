@@ -40,11 +40,12 @@
   </div>
 
   <script>
-    const qp = (k)=> new URLSearchParams(location.search).get(k);
-    const pid = qp('id') || 'P-2501';
-    document.getElementById('pid').textContent = pid;
-    document.getElementById('detailBtn').href = `tprgs-project-detail.html?id=${encodeURIComponent(pid)}`;
-    document.getElementById('workstreamBtn').href = `tprgs-sub-projects.html?parentId=${encodeURIComponent(pid)}`;
+  const qp = (k)=> new URLSearchParams(location.search).get(k);
+  const pid = qp('id') || 'P-2501';
+  document.getElementById('pid').textContent = pid;
+  document.getElementById('detailBtn').href = `#project_detail?id=${encodeURIComponent(pid)}`;
+  // Keep the workstream button pointing to the sub-projects UI but via hash router as a project detail entry (parent passed as parentId)
+  document.getElementById('workstreamBtn').href = `#project_detail?id=${encodeURIComponent(pid)}&parentId=${encodeURIComponent(pid)}`;
   </script>
 </body>
 </html>

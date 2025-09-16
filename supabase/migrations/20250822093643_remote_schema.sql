@@ -219,19 +219,8 @@ grant truncate on table "public"."project_members" to "service_role";
 
 grant update on table "public"."project_members" to "service_role";
 
-grant delete on table "public"."projects" to "anon";
-
-grant insert on table "public"."projects" to "anon";
-
-grant references on table "public"."projects" to "anon";
-
-grant select on table "public"."projects" to "anon";
-
-grant trigger on table "public"."projects" to "anon";
-
-grant truncate on table "public"."projects" to "anon";
-
-grant update on table "public"."projects" to "anon";
+-- Remove overly-broad anonymous grants on projects for security. Projects should be
+-- visible via RLS policies; writes must go through authenticated roles or service_role.
 
 grant delete on table "public"."projects" to "authenticated";
 
@@ -396,6 +385,15 @@ to public
 using ((EXISTS ( SELECT 1
    FROM project_members
   WHERE ((project_members.project_id = projects.id) AND (project_members.user_id = auth.uid())))));
+
+
+create policy "PM can update their projects"
+on "public"."projects"
+as permissive
+for update
+to public
+using ((pm_id = auth.uid()))
+with check ((pm_id = auth.uid()));
 
 
 create policy "Allow all users to read roles"

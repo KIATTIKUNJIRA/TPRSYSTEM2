@@ -15,12 +15,20 @@
 
 <script>
     window.pageInit = window.pageInit || {};
-    window.pageInit.hub = (currentUser) => {
-        console.log('Initializing Hub for:', currentUser.email);
+    window.pageInit.hub = async (currentUser) => {
+        // Prefer authoritative roles from assets/auth.js
+        try {
+            const authMod = await import('../assets/auth.js');
+            const fallback = authMod.getCurrentUser();
+            currentUser = currentUser || fallback;
+        } catch (e) {
+            // ignore if can't import
+        }
+        console.log('Initializing Hub for:', currentUser?.email);
         const container = document.getElementById('hub-menu-container');
         if (!container) return;
         
-        const userRoles = Array.isArray(currentUser.roles) ? currentUser.roles : [];
+        const userRoles = Array.isArray(currentUser?.roles) ? currentUser.roles : [];
 
         // Define all possible cards
         const menuCards = [

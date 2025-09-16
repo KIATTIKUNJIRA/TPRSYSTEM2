@@ -6,23 +6,30 @@
  * @param {string} userId The UID of the user to check.
  * @returns {Promise<boolean>} True if the user is a manager, false otherwise.
  */
+// isUserManager: replaced Firestore check with a roles-based heuristic or API lookup.
+// We'll treat 'manager' role as sufficient; if finer checks are needed, call api.getMyAssignments or
+// implement a server-side SQL function to determine reporting relationships.
 async function isUserManager(userId) {
-    if (!db) return false; // Safety check if firestore is not available
+    // Prefer role-based check using auth module (currentUser.roles)
     try {
-        const querySnapshot = await db.collection('users')
-            .where('managerId', '==', userId)
-            .limit(1)
-            .get();
-        return !querySnapshot.empty; // Returns true if the query finds at least one document
-    } catch (error) {
-        console.error("Error checking if user is a manager:", error);
+        const mod = await import('./assets/auth.js');
+        const current = mod.getCurrentUser();
+        if (!current) return false;
+        // if the current user has manager role, assume they manage someone
+        if (Array.isArray(current.roles) && current.roles.includes('manager')) return true;
+        // Fallback: check via API for assignments (if present)
+        const apiMod = await import('./assets/api.js');
+        const assignments = await apiMod.api.getMyAssignments(current.id);
+        return Array.isArray(assignments) && assignments.length > 0;
+    } catch (e) {
+        console.warn('isUserManager fallback failed', e);
         return false;
     }
 }
 
 /**
  * Asynchronously sets up the navigation bar based on the user's role and permissions.
- * @param {object} user The authenticated user object from Firebase.
+ * @param {object} user The authenticated user object.
  * @param {string} userRole The role of the user (e.g., 'admin', 'manager', 'staff').
  * @param {string} currentPage The identifier for the current active page.
  */
@@ -36,8 +43,8 @@ async function setupNavbar(user, userRole, currentPage) {
         return;
     }
 
-    // Check if the user is a manager of someone, this logic is now internal to setupNavbar
-    const isManagerOfSomeone = userRole === 'manager' ? await isUserManager(user.uid) : false;
+    // Check if the user is a manager of someone (role-based or via assignments)
+    const isManagerOfSomeone = userRole === 'manager' ? await isUserManager(user.id || user.uid) : false;
 
     const navItems = {
         'hr-dashboard': { href: 'hr-dashboard.html', text: 'HR Dashboard', roles: ['admin', 'hr'] },
@@ -94,9 +101,15 @@ async function setupNavbar(user, userRole, currentPage) {
                 // ignore if supabase client isn't available
             }
 
-            // Try Firebase signOut if available
-            if (typeof auth !== 'undefined' && auth && typeof auth.signOut === 'function') {
-                try { await auth.signOut(); } catch (e) { console.warn('Firebase signOut warning:', e); }
+            // Prefer Supabase signOut via assets/supabase-client.js
+            try {
+                const mod = await import('./assets/supabase-client.js');
+                if (mod && mod.supabase && mod.supabase.auth && typeof mod.supabase.auth.signOut === 'function') {
+                    const { error } = await mod.supabase.auth.signOut();
+                    if (error) console.warn('Supabase signOut warning:', error.message);
+                }
+            } catch (e) {
+                // ignore if supabase client isn't available
             }
 
             // Redirect to login page after sign-out
