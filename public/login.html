@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Login - TPRSYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="assets/main.css" rel="stylesheet">
@@ -11,55 +11,110 @@
     <div class="w-full max-w-sm p-8 bg-white rounded-2xl shadow-lg">
         <h1 class="text-2xl font-bold text-center text-slate-800">TPRSYSTEM</h1>
         <p class="text-sm text-center text-slate-500 mt-1">Please sign in to continue</p>
-        <form id="login-form" class="mt-8 space-y-4">
+
+        <form id="login-form" class="mt-8 space-y-4" novalidate>
             <div>
                 <label for="email" class="text-sm font-medium text-slate-700">Email</label>
                 <input type="email" id="email" required class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2" placeholder="you@example.com">
             </div>
+
             <div>
                 <label for="password" class="text-sm font-medium text-slate-700">Password</label>
                 <input type="password" id="password" required class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2" placeholder="••••••••">
             </div>
-            <div id="error-message" class="text-sm text-red-600 h-4"></div>
+
+            <div id="message" class="text-sm h-6"></div>
+
             <button type="submit" id="login-button" class="w-full bg-sky-600 text-white rounded-xl py-2 font-semibold flex items-center justify-center">
-                <span>Sign In</span>
+                <span id="login-button-text">Sign In</span>
             </button>
         </form>
-    </div>
-    
-    <script type="module">
-        import { supabase } from './assets/supabase-client.js';
 
-        const loginForm = document.getElementById('login-form');
-        const errorMessage = document.getElementById('error-message');
-        const loginButton = document.getElementById('login-button');
-        const loginButtonText = loginButton.querySelector('span');
+        <p class="text-center text-sm text-slate-500 mt-4">
+            Don't have an account? <a href="/signup.html" class="text-sky-600 font-medium">Go to Sign Up</a>
+        </p>
+        </div>
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMessage.textContent = '';
-            loginButtonText.textContent = 'Signing in...';
-            loginButton.disabled = true;
+        <script type="module" src="assets/env.js"></script>
+        <script type="module">
+        // Login logic that uses window.supabaseClient if available, otherwise attempts to import
+        (function () {
+            const loginForm = document.getElementById('login-form');
+            const messageEl = document.getElementById('message');
+            const loginButton = document.getElementById('login-button');
+            const loginButtonText = document.getElementById('login-button-text');
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
-
-            if (error) {
-                console.error('Login Error:', error.message);
-                errorMessage.textContent = error.message;
-                loginButtonText.textContent = 'Sign In';
-                loginButton.disabled = false;
-            } else {
-                console.log('Login successful!', data);
-                // Use relative path so the redirect works when served from a subpath or local server
-                window.location.href = 'app.html';
+            function setMessage(text, type) {
+                messageEl.textContent = text || '';
+                messageEl.className = 'text-sm h-6 ' + (type === 'error' ? 'text-red-600' : 'text-green-600');
             }
-        });
+
+            async function getClient() {
+                if (window.supabaseClient) return window.supabaseClient;
+                try {
+                    // dynamic import of ESM client; assets/supabase-client.js exports { supabase }
+                    const mod = await import('./assets/supabase-client.js');
+                    const client = mod.supabase || mod.default;
+                    if (client) window.supabaseClient = client;
+                    return client;
+                } catch (err) {
+                    console.error('Failed to load supabase client:', err);
+                    return null;
+                }
+            }
+
+            loginForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                setMessage('', '');
+                loginButton.disabled = true;
+                loginButtonText.textContent = 'Signing in...';
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    setMessage('Please enter email and password.', 'error');
+                    loginButton.disabled = false;
+                    loginButtonText.textContent = 'Sign In';
+                    return;
+                }
+
+                const client = await getClient();
+                if (!client) {
+                    setMessage('Unable to initialize authentication client.', 'error');
+                    loginButton.disabled = false;
+                    loginButtonText.textContent = 'Sign In';
+                    return;
+                }
+
+                try {
+                    const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+                    if (error) {
+                        console.error('Login error:', error);
+                        setMessage(error.message || 'Login failed', 'error');
+                        loginButton.disabled = false;
+                        loginButtonText.textContent = 'Sign In';
+                        return;
+                    }
+
+                    // success
+                    console.log('Login success', data);
+                    setMessage('Signed in successfully. Redirecting...', 'success');
+
+                    // Redirect to index.html (use absolute path so it works from any route)
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 600);
+
+                } catch (err) {
+                    console.error('Unexpected error during sign-in:', err);
+                    setMessage(err.message || 'Unexpected error', 'error');
+                    loginButton.disabled = false;
+                    loginButtonText.textContent = 'Sign In';
+                }
+            });
+        })();
     </script>
 </body>
 </html>

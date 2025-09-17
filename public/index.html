@@ -1,34 +1,83 @@
 <!doctype html>
 <html lang="th">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Welcome - TPRSYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="assets/main.css" rel="stylesheet">
-</head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-slate-800">TPRSYSTEM</h1>
-        <p class="text-slate-500 mt-2">Loading your workspace...</p>
-    </div>
+    <!doctype html>
+    <html lang="th">
 
-    <script type="module" src="assets/env.js"></script>
-    <script type="module">
-        import { supabase } from './assets/supabase-client.js';
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Welcome - TPRSYSTEM</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="assets/main.css" rel="stylesheet">
+        <!-- Minimal splash page: keep simple to preserve original behaviour -->
+    </head>
 
-        async function checkAuthAndRedirect() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                    // If user is logged in, go to the main app
-                    window.location.replace('app.html');
-                } else {
-                    // If not logged in, go to the login page
-                    window.location.replace('login.html');
+    <body class="bg-slate-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-slate-800">TPRSYSTEM</h1>
+            <p class="text-slate-500 mt-2">Loading your workspace...</p>
+        </div>
+
+        <!-- Top-right user menu -->
+        <div id="userMenu" class="hidden fixed top-4 right-4 bg-white border rounded-md shadow-sm px-3 py-2 flex items-center gap-3 text-sm">
+            <span id="userEmail" class="text-slate-700">user@example.com</span>
+            <button id="btnLogoutTop" class="ml-2 text-red-600 hover:underline">Logout</button>
+        </div>
+
+            <!-- Ensure environment variables are loaded before any module that initializes the supabase client -->
+            <script type="module" src="assets/env.js"></script>
+
+            <!-- Dev link (visible only when ?dev is present in the URL) -->
+            <script>
+                try {
+                    if (location && location.search && location.search.includes('?dev')) {
+                        const a = document.createElement('a');
+                        a.href = '/dev-check.html';
+                        a.textContent = 'Dev Check';
+                        a.setAttribute('aria-label', 'Dev diagnostics');
+                        a.className = 'fixed top-4 left-4 bg-yellow-100 text-yellow-800 px-2 py-1 rounded shadow-sm text-sm';
+                        document.addEventListener('DOMContentLoaded', () => document.body.appendChild(a));
+                    }
+                } catch (e) {
+                    // silent
+                    console.warn('dev link injection failed', e);
                 }
-        }
+            </script>
 
-        checkAuthAndRedirect();
-    </script>
-</body>
-</html>
+        <script type="module">
+        // cache-bust to avoid stale module copies in the browser during development
+        import { handleAuthGuard, getCurrentUser, logout } from './assets/auth.js?v=2';
+
+            (async function () {
+                const user = await handleAuthGuard(); // ถ้าไม่ login จะ redirect แล้วจบ
+                if (!user) return;
+
+                // render user menu in the top-right
+                const userMenu = document.getElementById('userMenu');
+                const userEmail = document.getElementById('userEmail');
+                const btnLogoutTop = document.getElementById('btnLogoutTop');
+
+                if (user && user.email) {
+                    userEmail.textContent = user.email;
+                    userMenu.classList.remove('hidden');
+                }
+
+                btnLogoutTop?.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await logout();
+                });
+
+            })();
+        </script>
+
+
+    </body>
+
+    </html>

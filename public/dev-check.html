@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dev Check - TPRSYSTEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="assets/main.css" rel="stylesheet">
+  </head>
+  <body class="p-6 bg-slate-50 min-h-screen">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-2xl font-bold mb-4">Dev Check</h1>
+      <p class="text-sm text-slate-600 mb-6">This page verifies runtime env, Supabase session, profile and user_roles. Intended for development only.</p>
+
+      <div id="results" class="space-y-4"></div>
+
+      <div class="mt-6">
+        <a href="/" class="text-sm text-blue-600 hover:underline">Back to app</a>
+      </div>
+    </div>
+
+    <script type="module" src="assets/dev-check.js"></script>
+  </body>
+</html>

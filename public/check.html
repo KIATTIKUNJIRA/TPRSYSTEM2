@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System Check — TPRSYSTEM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="assets/main.css" rel="stylesheet">
+  <style>
+    body{background:#f8fafc}
+    .container{max-width:1100px;margin:28px auto;padding:18px}
+    .section{background:#fff;border:1px solid #e6edf3;border-radius:12px;padding:14px;margin-bottom:14px}
+    .section h2{font-size:1.05rem;font-weight:700}
+    .links a{display:inline-block;margin:6px 8px;padding:8px 12px;border-radius:8px;background:#f1f5f9;color:#0f172a;text-decoration:none;border:1px solid #e2e8f0}
+    .sublist{margin-top:8px}
+    .sublist a{display:block;padding:6px 8px;border-radius:6px;color:#334155;text-decoration:none}
+    .muted{color:#64748b}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="mb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">TPRSYSTEM — Check & Dashboard</h1>
+          <div class="muted">Master checklist with links to all dashboards and functional menus</div>
+        </div>
+        <div>
+          <a class="px-3 py-1 bg-white border rounded" href="index.html">Back to Home</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main dashboards -->
+    <section class="section">
+      <h2>Main Dashboards</h2>
+      <div class="links mt-3">
+        <a href="tprgs-projects-list.html">Projects List</a>
+        <a href="tprgs-project-dashboard.html">Project Dashboard</a>
+        <a href="tprgs-project-detail.html?id=P-2501">Project Detail (example)</a>
+        <a href="tprgs-sub-projects.html">Sub‑Projects</a>
+        <a href="tprgs-timesheet.html">Timesheet</a>
+        <a href="workload.html">Workload</a>
+        <a href="tprgs-client-portal-dashboard.html">Client Portal</a>
+        <a href="tprgs-resource-manager-dashboard.html">Resource Manager</a>
+        <a href="tprgs-hr-dashboard.html">HR Dashboard</a>
+        <a href="tprgs-manager-dashboard.html">Manager Dashboard</a>
+        <a href="tprgs-team-member-dashboard.html">Team Member</a>
+        <a href="tprgs-teamlead-dashboard.html">Team Lead</a>
+        <a href="tprgs-ceo-dashboard.html">CEO Dashboard</a>
+        <a href="tprgs-bd-dashboard.html">BD Dashboard</a>
+        <a href="tprgs-client-portal-dashboard.html">Client Portal</a>
+      </div>
+    </section>
+
+    <!-- Project functions -->
+    <section class="section">
+      <h2>Project Functions (submenu)</h2>
+      <div class="sublist mt-2">
+        <a href="tprgs-projects-list.html">Projects list</a>
+        <a href="tprgs-project-dashboard.html">Project dashboard</a>
+        <a href="tprgs-project-detail.html?id=P-2501">Project settings / detail</a>
+        <a href="tprgs-sub-projects.html">Workstreams / sub-projects</a>
+        <a href="tprgs-project-suite-mockup.html">Project suite mockup (interactive)</a>
+        <a href="tprgs-projects-list.html">Project search & filters</a>
+      </div>
+    </section>
+
+    <!-- Time & Attendance -->
+    <section class="section">
+      <h2>Time & Attendance</h2>
+      <div class="sublist mt-2">
+        <a href="tprgs-timesheet.html">Timesheet entry</a>
+        <a href="tprgs-team-member-dashboard.html">Employee workspace (time entry)</a>
+        <a href="tprgs-teamlead-dashboard.html">Team lead timesheet overview</a>
+      </div>
+    </section>
+
+    <!-- Finance & Invoices -->
+    <section class="section">
+      <h2>Finance & Billing</h2>
+      <div class="sublist mt-2">
+        <a href="#">Invoices listing (mock)</a>
+        <a href="#">Payments & reconciliation</a>
+        <a href="#">BVA / Cost vs Budget</a>
+      </div>
+    </section>
+
+    <!-- Documents & Reports -->
+    <section class="section">
+      <h2>Documents & Reports</h2>
+      <div class="sublist mt-2">
+        <a href="#">Project documents</a>
+        <a href="#">Progress reports</a>
+        <a href="#">Management dashboards</a>
+      </div>
+    </section>
+
+    <!-- Resource & HR -->
+    <section class="section">
+      <h2>Resource / HR</h2>
+      <div class="sublist mt-2">
+        <a href="tprgs-resource-manager-dashboard.html">Resource heatmap</a>
+        <a href="tprgs-resource-manager-dashboard.html">Capacity & allocation</a>
+        <a href="tprgs-hr-dashboard.html">HR dashboard</a>
+      </div>
+    </section>
+
+    <!-- Admin & Approvals -->
+    <section class="section">
+      <h2>Approvals & Admin</h2>
+      <div class="sublist mt-2">
+        <a href="#">Approvals queue</a>
+        <a href="#">User & roles</a>
+        <a href="#">System settings</a>
+      </div>
+    </section>
+
+    <footer class="muted small mt-4">Generated: check.html • mock links • Use this page as a progress checklist for rollout.</footer>
+  </div>
+</body>
+</html>
