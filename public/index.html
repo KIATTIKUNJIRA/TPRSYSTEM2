@@ -1,83 +1,195 @@
 <!doctype html>
 <html lang="th">
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Welcome - TPRSYSTEM</title>
+    <title>TPRSYSTEM – ศูนย์รวมลิงก์</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="assets/main.css" rel="stylesheet">
-    <!doctype html>
-    <html lang="th">
+    <link href="/assets/main.css" rel="stylesheet" />
+  </head>
 
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Welcome - TPRSYSTEM</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="assets/main.css" rel="stylesheet">
-        <!-- Minimal splash page: keep simple to preserve original behaviour -->
-    </head>
-
-    <body class="bg-slate-50 flex items-center justify-center min-h-screen">
-        <div class="text-center">
-            <h1 class="text-2xl font-bold text-slate-800">TPRSYSTEM</h1>
-            <p class="text-slate-500 mt-2">Loading your workspace...</p>
+  <body class="bg-slate-50 min-h-screen">
+    <!-- แถบบน -->
+    <header class="bg-white border-b sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-xl font-bold text-slate-800">TPRSYSTEM</span>
+          <span class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">ศูนย์รวมลิงก์ &amp; Preview</span>
         </div>
-
-        <!-- Top-right user menu -->
-        <div id="userMenu" class="hidden fixed top-4 right-4 bg-white border rounded-md shadow-sm px-3 py-2 flex items-center gap-3 text-sm">
-            <span id="userEmail" class="text-slate-700">user@example.com</span>
-            <button id="btnLogoutTop" class="ml-2 text-red-600 hover:underline">Logout</button>
+        <div class="flex items-center gap-3 text-sm">
+          <div class="flex items-baseline gap-3">
+            <span class="text-slate-600">คุณ, <b data-user-email></b></span>
+            <span class="text-xs text-slate-500" data-user-roles aria-hidden="true"></span>
+          </div>
+          <button data-logout class="text-red-600 hover:underline">ออกจากระบบ</button>
         </div>
+      </div>
+    </header>
 
-            <!-- Ensure environment variables are loaded before any module that initializes the supabase client -->
-            <script type="module" src="assets/env.js"></script>
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
-            <!-- Dev link (visible only when ?dev is present in the URL) -->
-            <script>
-                try {
-                    if (location && location.search && location.search.includes('?dev')) {
-                        const a = document.createElement('a');
-                        a.href = '/dev-check.html';
-                        a.textContent = 'Dev Check';
-                        a.setAttribute('aria-label', 'Dev diagnostics');
-                        a.className = 'fixed top-4 left-4 bg-yellow-100 text-yellow-800 px-2 py-1 rounded shadow-sm text-sm';
-                        document.addEventListener('DOMContentLoaded', () => document.body.appendChild(a));
-                    }
-                } catch (e) {
-                    // silent
-                    console.warn('dev link injection failed', e);
-                }
-            </script>
+      <!-- กลุ่ม: ทั่วไป -->
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-800">สำหรับพนักงานทั่วไป</h2>
+          <span class="text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">ต้องล็อกอิน</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- โปรไฟล์ของฉัน -->
+          <a href="/me.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">โปรไฟล์ของฉัน</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 border">General</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                ดู/แก้ไขโปรไฟล์ของฉัน ข้อมูลติดต่อ แผนก บริษัท และรูปภาพ
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>me.html</code></div>
+            </div>
+          </a>
 
-        <script type="module">
-        // cache-bust to avoid stale module copies in the browser during development
-        import { handleAuthGuard, getCurrentUser, logout } from './assets/auth.js?v=2';
+          <!-- Timesheet -->
+          <a href="/tprgs-timesheet.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">Timesheet</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 border">General</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                ลงเวลาเป็นรายโปรเจกต์/งาน ใช้ตัวจับเวลา และส่งอนุมัติ
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>tprgs-timesheet.html</code></div>
+            </div>
+          </a>
 
-            (async function () {
-                const user = await handleAuthGuard(); // ถ้าไม่ login จะ redirect แล้วจบ
-                if (!user) return;
+          <!-- หน้าหลักแอป (ตัวอย่าง shell) -->
+          <a href="/app.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">App Shell</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 border">General</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                หน้าหลักแอปสำหรับโหลดมอดูลภายใน (ตัวอย่าง)
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>app.html</code></div>
+            </div>
+          </a>
+        </div>
+      </section>
 
-                // render user menu in the top-right
-                const userMenu = document.getElementById('userMenu');
-                const userEmail = document.getElementById('userEmail');
-                const btnLogoutTop = document.getElementById('btnLogoutTop');
+      <!-- กลุ่ม: HR -->
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-800">สำหรับ HR</h2>
+          <span class="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-100">ต้องล็อกอิน + สิทธิ์ HR</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Directory -->
+          <a href="/directory.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">Employee Directory</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 border">HR</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                รายชื่อพนักงาน ค้นหา/กรองตามบริษัทและแผนก
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>directory.html</code></div>
+            </div>
+          </a>
 
-                if (user && user.email) {
-                    userEmail.textContent = user.email;
-                    userMenu.classList.remove('hidden');
-                }
+          <!-- HR Dashboard (มีอยู่แล้ว) -->
+          <a href="/tprgs-hr-dashboard.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">HR Dashboard</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 border">HR</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                Timesheet compliance, ปฏิทินการลา, Payroll support (mockup)
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>tprgs-hr-dashboard.html</code></div>
+            </div>
+          </a>
+        </div>
+      </section>
 
-                btnLogoutTop?.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    await logout();
-                });
+      <!-- กลุ่ม: Admin -->
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-800">สำหรับผู้ดูแลระบบ (Admin)</h2>
+          <span class="text-xs px-2 py-1 rounded bg-rose-50 text-rose-700 border border-rose-100">ต้องล็อกอิน + สิทธิ์ Admin</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Roles Admin -->
+          <a href="/roles-admin.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">Role Management</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-rose-50 text-rose-700 border">Admin</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                มอบหมาย/เพิกถอนสิทธิ์ (user_roles) ให้ผู้ใช้
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>roles-admin.html</code></div>
+            </div>
+          </a>
 
-            })();
-        </script>
+          <!-- CEO Dashboard (ออปชัน) -->
+          <a href="/tprgs-ceo-dashboard.html" class="block group">
+            <div class="bg-white border rounded-2xl shadow-sm p-4 h-full hover:shadow transition">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-slate-800">CEO Dashboard</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-rose-50 text-rose-700 border">Admin</span>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">
+                Financial health, Project/Team performance (mockup)
+              </p>
+              <div class="mt-3 text-xs text-slate-500">ไฟล์: <code>tprgs-ceo-dashboard.html</code></div>
+            </div>
+          </a>
+        </div>
+      </section>
 
+    </main>
 
-    </body>
+    <!-- โหลดลำดับมาตรฐาน: CDN → env → client → guard → shared-nav -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/env.js"></script>
+    <script src="/assets/supabase-client.js"></script>
+    <script type="module" src="/assets/guard.js"></script>
+    <script type="module" src="/assets/shared-nav.js"></script>
 
-    </html>
+    <script type="module">
+      import { handleAuthGuard, logout } from './assets/auth.js';
+
+      (async function(){
+        const user = await handleAuthGuard({ redirect: '/login.html' });
+        if (user) {
+          const el = document.querySelector('[data-user-email]');
+          if (el && user.email) el.textContent = user.email;
+
+          const rolesEl = document.querySelector('[data-user-roles]');
+          // roles is an array of role names from loadProfileAndRoles
+          if (rolesEl) {
+            if (Array.isArray(user.roles) && user.roles.length > 0) {
+              rolesEl.textContent = `(${user.roles.join(', ')})`;
+              rolesEl.setAttribute('aria-hidden', 'false');
+            } else {
+              rolesEl.textContent = '(no roles)';
+              rolesEl.setAttribute('aria-hidden', 'true');
+            }
+          }
+        }
+
+        const btn = document.querySelector('[data-logout]');
+        if (btn) btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await logout({ redirect: '/login.html' });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roles Admin • TPRGS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="assets/main.css" rel="stylesheet">
+  <style>
+    .card{ background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+    .role-pill{ display:inline-block; padding:.25rem .6rem; border-radius:999px; background:#eef2ff; color:#3730a3; margin-right:.4rem; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <main class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-4">Role administration</h1>
+
+    <div id="guardNotice" class="card mb-4 hidden">
+      <div class="text-red-600 font-medium">Access denied</div>
+      <div class="text-sm text-slate-600">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</div>
+    </div>
+
+    <div id="body" class="hidden">
+      <div class="card mb-4">
+        <div class="flex gap-3">
+          <input id="inpEmail" class="flex-1 border rounded-xl p-2" placeholder="Type user email to search" />
+          <button id="btnSearch" class="px-3 py-2 rounded-xl bg-slate-900 text-white">Search</button>
+        </div>
+      </div>
+
+      <div id="result" class="card hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <div id="resName" class="font-semibold">—</div>
+            <div id="resEmail" class="text-sm text-slate-600">—</div>
+          </div>
+          <div id="resRoles"></div>
+        </div>
+        <div class="mt-4">
+          <label class="text-xs text-slate-600">Grant role</label>
+          <div class="flex items-center gap-2 mt-2">
+            <select id="selGrant" aria-label="grant role" class="border rounded-xl p-2">
+              <option value="">Select role</option>
+            </select>
+            <button id="btnGrant" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Grant</button>
+            <button id="btnRevoke" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Revoke selected</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="assets/env.js"></script>
+  <script type="module">
+    import { handleAuthGuard } from './assets/auth.js';
+    import { supabase } from './assets/supabase-client.js';
+
+    const $ = s => document.querySelector(s);
+
+    // Required global roles
+    const REQUIRED = ['owner','admin','hr_manager'];
+
+    (async function(){
+      const user = await handleAuthGuard();
+      if (!user) return; // redirected
+
+      // Check current user's roles (from handleAuthGuard result)
+      const myRoles = user.roles || [];
+      const allowed = myRoles.some(r => REQUIRED.includes(r));
+      if (!allowed) {
+        $('#guardNotice').classList.remove('hidden');
+        return;
+      }
+
+      // show body
+      $('#body').classList.remove('hidden');
+
+      // load all roles into grant select
+      const { data: allRoles } = await supabase.from('roles').select('id,name').order('name', { ascending: true });
+      const sel = $('#selGrant');
+      sel.innerHTML = '<option value="">Select role</option>' + (allRoles||[]).map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+
+      // search handler
+      $('#btnSearch').addEventListener('click', async ()=>{
+        const email = $('#inpEmail').value.trim();
+        if (!email) return alert('Provide email');
+        // find profile by email
+        const { data: prof, error: pErr } = await supabase.from('profiles').select('id, first_name, last_name, email').eq('email', email).maybeSingle();
+        if (pErr) { console.error('profile search', pErr); alert('Search error'); return; }
+        if (!prof) { alert('User not found'); return; }
+
+        $('#result').classList.remove('hidden');
+        $('#resName').textContent = `${prof.first_name || ''} ${prof.last_name || ''}`.trim() || '(no name)';
+        $('#resEmail').textContent = prof.email || '';
+
+        // load user's roles (user_roles -> roles)
+        const { data: urRows, error: urErr } = await supabase.from('user_roles').select('role_id').eq('user_id', prof.id);
+        if (urErr) { console.warn('user_roles', urErr); }
+        const roleIds = (urRows||[]).map(r=>r.role_id).filter(Boolean);
+        let roles = [];
+        if (roleIds.length>0){
+          const { data: rolesRows } = await supabase.from('roles').select('id,name').in('id', roleIds);
+          roles = rolesRows || [];
+        }
+
+        // render current roles with checkboxes
+        const container = $('#resRoles'); container.innerHTML = '';
+        roles.forEach(r=>{
+          const el = document.createElement('label'); el.className='role-pill';
+          el.innerHTML = `<input type="checkbox" value="${r.id}" style="margin-right:.4rem" /> ${r.name}`;
+          container.appendChild(el);
+        });
+
+        // Grant role
+        $('#btnGrant').onclick = async ()=>{
+          const rid = Number($('#selGrant').value);
+          if (!rid) return alert('Select a role to grant');
+          const { data, error } = await supabase.from('user_roles').insert([{ user_id: prof.id, role_id: rid }]);
+          if (error) { console.error('grant error', error); alert('Grant failed: '+(error.message||error)); return; }
+          alert('Granted'); $('#btnSearch').click();
+        };
+
+        // Revoke selected
+        $('#btnRevoke').onclick = async ()=>{
+          const checked = Array.from(container.querySelectorAll('input[type=checkbox]:checked')).map(i=>Number(i.value));
+          if (checked.length===0) return alert('Select roles to revoke');
+          // delete rows for each role id
+          try{
+            for(const rid of checked){
+              const { error } = await supabase.from('user_roles').delete().match({ user_id: prof.id, role_id: rid });
+              if (error) console.warn('revoke warning', error);
+            }
+            alert('Revoked'); $('#btnSearch').click();
+          }catch(e){ console.error('revoke', e); alert('Revoke failed'); }
+        };
+
+      });
+
+    })();
+  </script>
+</body>
+</html>

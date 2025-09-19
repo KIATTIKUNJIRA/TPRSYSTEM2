@@ -4,17 +4,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login - TPRSYSTEM</title>
+    <title>Sign Up - TPRSYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="assets/main.css" rel="stylesheet">
 </head>
 
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
     <div class="w-full max-w-sm p-8 bg-white rounded-2xl shadow-lg">
-        <h1 class="text-2xl font-bold text-center text-slate-800">TPRSYSTEM</h1>
-        <p class="text-sm text-center text-slate-500 mt-1">Please sign in to continue</p>
+        <h1 class="text-2xl font-bold text-center text-slate-800">Create an account</h1>
+        <p class="text-sm text-center text-slate-500 mt-1">Register a new user</p>
 
-        <form id="login-form" class="mt-8 space-y-4" novalidate>
+        <form id="signup-form" class="mt-8 space-y-4" novalidate>
             <div>
                 <label for="email" class="text-sm font-medium text-slate-700">Email</label>
                 <input type="email" id="email" required class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2"
@@ -27,28 +27,33 @@
                     class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2" placeholder="••••••••">
             </div>
 
+            <div>
+                <label for="confirm" class="text-sm font-medium text-slate-700">Confirm password</label>
+                <input type="password" id="confirm" required
+                    class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2" placeholder="••••••••">
+            </div>
+
             <div id="message" class="text-sm h-6"></div>
 
-            <button type="submit" id="login-button"
-                class="w-full bg-sky-600 text-white rounded-xl py-2 font-semibold flex items-center justify-center">
-                <span id="login-button-text">Sign In</span>
+            <button type="submit" id="signup-button"
+                class="w-full bg-emerald-600 text-white rounded-xl py-2 font-semibold flex items-center justify-center">
+                <span id="signup-button-text">Create account</span>
             </button>
         </form>
 
         <p class="text-center text-sm mt-2">
-            Don't have an account? <a href="/signup.html" class="text-blue-600 hover:underline">Go to Sign Up</a>
+            Already have an account? <a href="/login.html" class="text-blue-600 hover:underline">Sign in</a>
         </p>
 
     </div>
 
     <script type="module" src="assets/env.js"></script>
     <script type="module">
-        // Login logic that uses window.supabaseClient if available, otherwise attempts to import
         (function () {
-            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
             const messageEl = document.getElementById('message');
-            const loginButton = document.getElementById('login-button');
-            const loginButtonText = document.getElementById('login-button-text');
+            const signupButton = document.getElementById('signup-button');
+            const signupButtonText = document.getElementById('signup-button-text');
 
             function setMessage(text, type) {
                 messageEl.textContent = text || '';
@@ -58,7 +63,6 @@
             async function getClient() {
                 if (window.supabaseClient) return window.supabaseClient;
                 try {
-                    // dynamic import of ESM client; assets/supabase-client.js exports { supabase }
                     const mod = await import('./assets/supabase-client.js');
                     const client = mod.supabase || mod.default;
                     if (client) window.supabaseClient = client;
@@ -69,55 +73,57 @@
                 }
             }
 
-            loginForm.addEventListener('submit', async function (e) {
+            signupForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 setMessage('', '');
-                loginButton.disabled = true;
-                loginButtonText.textContent = 'Signing in...';
+                signupButton.disabled = true;
+                signupButtonText.textContent = 'Creating...';
 
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
 
                 if (!email || !password) {
                     setMessage('Please enter email and password.', 'error');
-                    loginButton.disabled = false;
-                    loginButtonText.textContent = 'Sign In';
+                    signupButton.disabled = false;
+                    signupButtonText.textContent = 'Create account';
+                    return;
+                }
+
+                const confirm = document.getElementById('confirm').value;
+                if (password !== confirm) {
+                    setMessage('Passwords do not match.', 'error');
+                    signupButton.disabled = false;
+                    signupButtonText.textContent = 'Create account';
                     return;
                 }
 
                 const client = await getClient();
                 if (!client) {
                     setMessage('Unable to initialize authentication client.', 'error');
-                    loginButton.disabled = false;
-                    loginButtonText.textContent = 'Sign In';
+                    signupButton.disabled = false;
+                    signupButtonText.textContent = 'Create account';
                     return;
                 }
 
                 try {
-                    const { data, error } = await client.auth.signInWithPassword({ email, password });
-
+                    const { data, error } = await client.auth.signUp({ email, password });
                     if (error) {
-                        console.error('Login error:', error);
-                        setMessage(error.message || 'Login failed', 'error');
-                        loginButton.disabled = false;
-                        loginButtonText.textContent = 'Sign In';
+                        console.error('Signup error:', error);
+                        setMessage(error.message || 'Signup failed', 'error');
+                        signupButton.disabled = false;
+                        signupButtonText.textContent = 'Create account';
                         return;
                     }
 
-                    // success
-                    console.log('Login success', data);
-                    setMessage('Signed in successfully. Redirecting...', 'success');
-
-                    // Redirect to index.html (use absolute path so it works from any route)
-                    setTimeout(() => {
-                        window.location.href = '/index.html';
-                    }, 600);
+                    console.log('Signup success', data);
+                    setMessage('Account created. Please check your email to confirm (if required). Redirecting to login...', 'success');
+                    setTimeout(() => { window.location.href = '/login.html'; }, 800);
 
                 } catch (err) {
-                    console.error('Unexpected error during sign-in:', err);
+                    console.error('Unexpected error during sign-up:', err);
                     setMessage(err.message || 'Unexpected error', 'error');
-                    loginButton.disabled = false;
-                    loginButtonText.textContent = 'Sign In';
+                    signupButton.disabled = false;
+                    signupButtonText.textContent = 'Create account';
                 }
             });
         })();

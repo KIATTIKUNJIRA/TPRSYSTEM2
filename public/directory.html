@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Directory • TPRGS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="assets/main.css" rel="stylesheet">
+  <style>
+    .card{ background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-4">Directory</h1>
+
+    <div class="card mb-4">
+      <div class="flex items-center gap-3">
+        <div>
+          <label class="text-xs text-slate-600">บริษัท</label>
+          <select id="selCompany" aria-label="company filter" class="border rounded-xl p-2"></select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-600">แผนก</label>
+          <select id="selDepartment" aria-label="department filter" class="border rounded-xl p-2"></select>
+        </div>
+        <div class="flex-1">
+          <label class="text-xs text-slate-600">ค้นหา</label>
+          <input id="inpQ" class="w-full border rounded-xl p-2" placeholder="ค้นหาชื่อหรืออีเมล" />
+        </div>
+        <div class="flex items-end">
+          <button id="btnSearch" class="px-3 py-2 rounded-xl bg-slate-900 text-white">ค้นหา</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tbl">
+          <thead class="text-slate-500">
+            <tr>
+              <th class="text-left py-2">Name</th>
+              <th class="text-left py-2">Email</th>
+              <th class="text-left py-2">Department</th>
+              <th class="text-left py-2">Company</th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <div>
+          <label class="text-xs text-slate-600">Rows per page</label>
+          <select id="selPageSize" aria-label="rows per page" class="border rounded-xl p-2">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnPrev" class="px-3 py-1 rounded-xl border">Prev</button>
+          <span id="pageInfo" class="text-sm text-slate-600">Page 1</span>
+          <button id="btnNext" class="px-3 py-1 rounded-xl border">Next</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="assets/env.js"></script>
+  <script type="module">
+    import { listProfiles, listDepartments } from './assets/api-profiles.mjs';
+
+    const $ = sel => document.querySelector(sel);
+    const tb = $('#tb');
+    const selDept = $('#selDepartment');
+    const selCompany = $('#selCompany');
+
+    let allProfiles = [];
+    let page = 1;
+    let pageSize = Number($('#selPageSize').value);
+
+    async function loadFilters(){
+      const { data: depts } = await listDepartments();
+      selDept.innerHTML = '<option value="">All</option>' + (depts||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
+      // Companies: repo doesn't have a companies table; offer a blank/default option
+      selCompany.innerHTML = '<option value="">All</option>';
+    }
+
+    async function fetchProfiles({ company_id, department_id, q } = {}){
+      // listProfiles accepts company_id, department_id, q per requirement
+      const { data, error } = await listProfiles({ company_id, department_id, q });
+      if (error) { console.warn('profiles load', error); allProfiles = []; } else allProfiles = data || [];
+      page = 1; renderPage();
+    }
+
+    function renderPage(){
+      pageSize = Number($('#selPageSize').value || 10);
+      const start = (page-1)*pageSize; const end = start + pageSize;
+      const slice = allProfiles.slice(start, end);
+      tb.innerHTML = '';
+      for(const p of slice){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="py-2">${(p.first_name||'')+' '+(p.last_name||'')}</td>
+                        <td class="py-2">${p.email||''}</td>
+                        <td class="py-2">${p.department||''}</td>
+                        <td class="py-2">${p.company||''}</td>`;
+        tb.appendChild(tr);
+      }
+      const totalPages = Math.max(1, Math.ceil((allProfiles||[]).length / pageSize));
+      $('#pageInfo').textContent = `Page ${page} / ${totalPages}`;
+      $('#btnPrev').disabled = page<=1;
+      $('#btnNext').disabled = page>=totalPages;
+    }
+
+    // events
+    $('#btnSearch').addEventListener('click', ()=> fetchProfiles({ company_id: selCompany.value || undefined, department_id: selDept.value || undefined, q: $('#inpQ').value || undefined }));
+    $('#selPageSize').addEventListener('change', ()=> { page = 1; renderPage(); });
+    $('#btnPrev').addEventListener('click', ()=> { if(page>1){ page--; renderPage(); } });
+    $('#btnNext').addEventListener('click', ()=> { const totalPages = Math.max(1, Math.ceil((allProfiles||[]).length / pageSize)); if(page<totalPages){ page++; renderPage(); } });
+
+    // init
+    await loadFilters();
+    await fetchProfiles();
+  </script>
+</body>
+</html>

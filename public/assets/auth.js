@@ -29,48 +29,52 @@ export async function loadProfileAndRoles(userId) {
       .select('*')
       .eq('id', userId)
       .maybeSingle();
-    if (pErr) console.warn('profiles load warning', pErr.message || pErr);
 
-    // First fetch role_ids from user_roles (avoid relational select that can trigger recursive policies)
-    let roleIds = [];
-    try {
-      const { data: urRows, error: urErr } = await supabase
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', userId);
-      if (urErr) {
-        // If server warns about policy recursion, surface a clear message for developers
-        if (urErr.message && urErr.message.toLowerCase().includes('recursive')) {
-          console.warn('user_roles load warning: possible RLS policy recursion detected. Consider reviewing RLS policies on user_roles/roles.');
-        } else {
-          console.warn('user_roles load warning', urErr.message || urErr);
-        }
-      }
-      roleIds = (urRows || []).map(r => r.role_id).filter(Boolean);
-    } catch (innerErr) {
-      console.warn('user_roles fetch failed', innerErr);
-      roleIds = [];
-    }
+    console.log('loadProfileAndRoles profile:', profile, 'error:', pErr);
 
-    // If we have role ids, fetch role names
-    let roles = [];
-    if (roleIds.length > 0) {
-      try {
-        const { data: rolesRows, error: rolesErr } = await supabase
-          .from('roles')
-          .select('name')
-          .in('id', roleIds);
-        if (rolesErr) {
-          console.warn('roles load warning', rolesErr.message || rolesErr);
-        }
-        roles = (rolesRows || []).map(r => r.name).filter(Boolean);
-      } catch (rolesFetchErr) {
-        console.warn('roles fetch failed', rolesFetchErr);
-        roles = [];
-      }
-    }
+    // if (pErr) console.warn('profiles load warning', pErr.message || pErr);
+
+    // // First fetch role_ids from user_roles (avoid relational select that can trigger recursive policies)
+    // let roleIds = [];
+    // try {
+    //   const { data: urRows, error: urErr } = await supabase
+    //     .from('user_roles')
+    //     .select('role_id')
+    //     .eq('user_id', userId);
+    //   if (urErr) {
+    //     // If server warns about policy recursion, surface a clear message for developers
+    //     if (urErr.message && urErr.message.toLowerCase().includes('recursive')) {
+    //       console.warn('user_roles load warning: possible RLS policy recursion detected. Consider reviewing RLS policies on user_roles/roles.');
+    //     } else {
+    //       console.warn('user_roles load warning', urErr.message || urErr);
+    //     }
+    //   }
+    //   roleIds = (urRows || []).map(r => r.role_id).filter(Boolean);
+    // } catch (innerErr) {
+    //   console.warn('user_roles fetch failed', innerErr);
+    //   roleIds = [];
+    // }
+
+    // // If we have role ids, fetch role names
+    // let roles = [];
+    // if (roleIds.length > 0) {
+    //   try {
+    //     const { data: rolesRows, error: rolesErr } = await supabase
+    //       .from('roles')
+    //       .select('name')
+    //       .in('id', roleIds);
+    //     if (rolesErr) {
+    //       console.warn('roles load warning', rolesErr.message || rolesErr);
+    //     }
+    //     roles = (rolesRows || []).map(r => r.name).filter(Boolean);
+    //   } catch (rolesFetchErr) {
+    //     console.warn('roles fetch failed', rolesFetchErr);
+    //     roles = [];
+    //   }
+    // }
 
     return { profile: profile || null, roles };
+
   } catch (err) {
     console.error('loadProfileAndRoles error', err);
     return { profile: null, roles: [] };
